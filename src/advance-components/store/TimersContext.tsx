@@ -33,7 +33,7 @@ interface ADDTimerAction {
 type Action = StartTimersAction | StopTimersAction | ADDTimerAction;
 
 const initialState: TimersState = {
-  isRunning: false,
+  isRunning: true,
   timers: [],
 };
 const TimersContext = createContext<TimersContextValue | null>(null);
