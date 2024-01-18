@@ -1,50 +1,62 @@
-import Header from "./components/Header";
-import goalsImage from "./assets/goals.jpg";
-import { useState } from "react";
-import CourseGoalList from "./components/CourseGoalList";
-import NewGoal from "./components/NewGoal";
+import { useEffect, useState } from "react";
+import "./fetchingData/index.css";
+import { get } from "./fetchingData/http";
+import BlogPosts, { BlogPost } from "./fetchingData/BlogPosts";
+import ErrorMessage from "./fetchingData/ErrorMessage";
 
-export interface courseGoal {
-  title: string;
-  description: string;
+interface RawDataBlogPosts {
   id: number;
+  title: string;
+
+  body: string;
+  userId: number;
 }
 
 function App() {
-  //forma de tipar un useState
-  const [goals, setGoals] = useState<courseGoal[]>([]);
-  const handleAddGoal = (goal: string, summary: string) => {
-    setGoals((prevState) => {
-      return [
-        ...prevState,
-        {
-          description: summary,
-          title: goal,
-          id: Math.random(),
-        },
-      ];
-    });
-  };
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const handleDeleteGoal = (id: number) => {
-    setGoals((state) => {
-      const newState = state.filter((item) => item.id !== id);
-      return [...newState];
-    });
-  };
+  useEffect(() => {
+    setIsFetching(true);
+    const fetchingData = async () => {
+      try {
+        const data = (await get(
+          "https://jsonplaceholder.typicode.com/posts"
+        )) as RawDataBlogPosts[];
+
+        const blogPosts = data.map((item) => {
+          return {
+            id: item.id,
+            text: item.body,
+            title: item.title,
+          };
+        });
+
+        setPosts(blogPosts);
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        }
+      }
+      setIsFetching(false);
+    };
+
+    fetchingData();
+  }, []);
+
+  if (error) {
+    return <ErrorMessage text={error} />;
+  }
 
   return (
     <>
       <main>
-        <Header image={{ src: goalsImage, alt: "a list of goals" }}>
-          <h1>Your course goals</h1>
-        </Header>
-
-        <NewGoal addGoal={handleAddGoal} />
-        <CourseGoalList
-          goals={goals}
-          handleClick={handleDeleteGoal}
-        />
+        {isFetching ? (
+          <p id="loading-fallback">Fetching posts...</p>
+        ) : (
+          <BlogPosts posts={posts} />
+        )}
       </main>
     </>
   );
