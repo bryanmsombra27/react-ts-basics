@@ -1,25 +1,36 @@
-import { ReactNode } from "react";
+import { useState } from "react";
 
-interface image {
-  src: string;
-  alt: string;
-}
+import Cart from "./Cart.tsx";
+import { useCartSelector } from "../../store/hooks.tsx";
 
-interface HeaderProps {
-  image: image;
-  children: ReactNode;
-}
+export default function Header() {
+  const [cartIsVisible, setCartIsVisible] = useState(false);
+  const { items } = useCartSelector((state) => state.cart);
+  const cartQuantity = items.reduce((acc, curr) => acc + curr.quantity, 0);
 
-const Header = ({ image, children }: HeaderProps) => {
+  function handleOpenCartClick() {
+    setCartIsVisible(true);
+  }
+
+  function handleCloseCartClick() {
+    setCartIsVisible(false);
+  }
+
   return (
-    <header>
-      <img
-        src={image.src}
-        alt={image.alt}
-      />
-      {children}
-    </header>
+    <>
+      {cartIsVisible && <Cart onClose={handleCloseCartClick} />}
+      <header id="main-header">
+        <div id="main-title">
+          <img
+            src="logo.png"
+            alt="Elegant model"
+          />
+          <h1>Elegant Redux</h1>
+        </div>
+        <p>
+          <button onClick={handleOpenCartClick}>Cart {cartQuantity}</button>
+        </p>
+      </header>
+    </>
   );
-};
-
-export default Header;
+}
